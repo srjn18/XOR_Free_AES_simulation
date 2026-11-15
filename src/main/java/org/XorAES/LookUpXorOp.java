@@ -7,15 +7,15 @@ public class LookUpXorOp implements ByteOp{
     public LookUpXorOp(){
         for(int a=0;a<256;a++){
             for(int b=0;b<256;b++){
-                int index=(a<<8)|b;
-                table[index]=(byte)((a+b-2*(a|b)) & 0xFF);
+                int index = (a << 8) | b;
+                table[index] = (byte) ((a + b - 2 * (a & b)) & 0xFF);
 
             }
         }
     }
     @Override
     public int combine(int a, int b) {
-        int index=((a<<8)& 0xFF) | (b &0xFF);
+        int index = ((a & 0xFF) << 8) | (b & 0xFF);
         return table[index] & 0xFF;
     }
 

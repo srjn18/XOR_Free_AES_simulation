@@ -16,7 +16,7 @@ public class GF256 {
     public int xtime(int a) {
         a &= 0xFF;
         int shifted = (a << 1) & 0xFF;
-        if ((a & 0xFF) != 0)
+        if ((a & 0x80) != 0)
             shifted = byteOp.combine(shifted, 0x1B);
 
         return shifted;
