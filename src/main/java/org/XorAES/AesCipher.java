@@ -12,29 +12,31 @@ public class AesCipher {
     }
 
     public void encryptBlock(byte[] input, byte[] output){
-        if(input.length!=16 || output.length!=16)
+        if(input.length != 16 || output.length != 16)
             throw new IllegalArgumentException("AES encrypts exactly one 16-byte block");
+        encryptBlock(input, 0, output, 0);
+    }
 
+    public void encryptBlock(byte[] input, int inOffset, byte[] output, int outOffset){
         int[] state = new int[16];
-        for(int i=0;i<16;i++){
-            state[i]=input[i] & 0xFF;
+        for(int i = 0; i < 16; i++){
+            state[i] = input[inOffset + i] & 0xFF;
         }
-        addRoundKey(state,0);
+        addRoundKey(state, 0);
 
-        for(int round=1;round<=9;round++){
+        for(int round = 1; round <= 9; round++){
             subBytes(state);
             shiftRows(state);
             mixCoulmns(state);
-            addRoundKey(state,round);
+            addRoundKey(state, round);
         }
         subBytes(state);
         shiftRows(state);
-        addRoundKey(state,10);
+        addRoundKey(state, 10);
 
-        for(int i=0;i<16;i++){
-            output[i]=(byte) state[i];
+        for(int i = 0; i < 16; i++){
+            output[outOffset + i] = (byte) state[i];
         }
-
     }
 
 
@@ -55,15 +57,25 @@ public class AesCipher {
     }
 
     private void shiftRows(int[] state) {
-        int[] shifted=new int[16];
+        // Row 0 is unchanged
 
-        for(int row=0;row<4;row++){
-            for(int col=0;col<4;col++){
-                int sourceCol=(col + row)%4;
-                shifted[row + 4*col]=state[row+4*sourceCol];
-            }
-        }
-        System.arraycopy(shifted,0,state,0,16);
+        // Row 1: shift left 1
+        int t = state[1];
+        state[1] = state[5];
+        state[5] = state[9];
+        state[9] = state[13];
+        state[13] = t;
+
+        // Row 2: shift left 2
+        t = state[2]; state[2] = state[10]; state[10] = t;
+        t = state[6]; state[6] = state[14]; state[14] = t;
+
+        // Row 3: shift left 3
+        t = state[15];
+        state[15] = state[11];
+        state[11] = state[7];
+        state[7] = state[3];
+        state[3] = t;
     }
 
     private void mixCoulmns(int[] state) {
@@ -93,16 +105,25 @@ public class AesCipher {
     }
 
     private void invShiftRows(int[] state) {
-        int[] shifted = new int[16];
+        // Row 0 is unchanged
 
-        for (int row = 0; row < 4; row++) {
-            for (int col = 0; col < 4; col++) {
-                int sourceCol = (col - row + 4) % 4;
-                shifted[row + 4 * col] = state[row + 4 * sourceCol];
-            }
-        }
+        // Row 1: shift right 1
+        int t = state[13];
+        state[13] = state[9];
+        state[9] = state[5];
+        state[5] = state[1];
+        state[1] = t;
 
-        System.arraycopy(shifted, 0, state, 0, 16);
+        // Row 2: shift right 2
+        t = state[2]; state[2] = state[10]; state[10] = t;
+        t = state[6]; state[6] = state[14]; state[14] = t;
+
+        // Row 3: shift right 3
+        t = state[3];
+        state[3] = state[7];
+        state[7] = state[11];
+        state[11] = state[15];
+        state[15] = t;
     }
 
     private void invSubBytes(int[] state) {
@@ -149,10 +170,13 @@ public class AesCipher {
             throw new IllegalArgumentException(
                     "AES decrypts exactly one 16-byte block");
         }
+        decryptBlock(input, 0, output, 0);
+    }
 
+    public void decryptBlock(byte[] input, int inOffset, byte[] output, int outOffset) {
         int[] state = new int[16];
         for (int i = 0; i < 16; i++) {
-            state[i] = input[i] & 0xFF;
+            state[i] = input[inOffset + i] & 0xFF;
         }
 
         addRoundKey(state, 10);
@@ -169,7 +193,7 @@ public class AesCipher {
         addRoundKey(state, 0);
 
         for (int i = 0; i < 16; i++) {
-            output[i] = (byte) state[i];
+            output[outOffset + i] = (byte) state[i];
         }
     }
 
